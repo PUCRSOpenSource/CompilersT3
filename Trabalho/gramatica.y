@@ -24,7 +24,7 @@
 
 %%
 
-program : PROGRAM ID ';' declarationOpc compoundStmt '.'
+program : { currEscopo = ""; } PROGRAM ID ';'{ currClass = ClasseID.VarGlobal; } declarationOpc compoundStmt '.'
         ;
 
 declarationOpc : varDeclarations procDeclarations ;
@@ -35,7 +35,7 @@ varDeclarations : VAR declarationList
 
 declarationList : declaration ';' declarationList
                 | declaration ';'
-          	| error { System.out.println("Erro na declaração, linha: " + lexer.getLine() ); }
+          	    | error { System.out.println("Erro na declaração, linha: " + lexer.getLine() ); }
                 ;
 
 declaration : idList ':' type ;
@@ -46,7 +46,7 @@ idList : ID
 
 type : INTEGER { $$ = Tp_INT; }
      | BOOLEAN { $$ = Tp_BOOL; }
-     | REAL { $$ = Tp_FLOAT; }
+     | REAL    { $$ = Tp_FLOAT; }
      ;
 
 procDeclarations : procDec procDeclarations
@@ -77,9 +77,18 @@ statementList : statement ';' statementList
               ;
 
 statement : ID ASSIGN expression
-          | IF expression THEN statement
-          | IF expression THEN statement ELSE statement
-          | WHILE expression DO statement
+          | IF expression THEN statement                { if (((TS_entry)$2).getTipo() != Tp_BOOL.getTipo()) {
+                                                            yyerror("expressão deve ser lógica "+((TS_entry)$2).getTipo());
+                                                          }
+                                                        } 
+          | IF expression THEN statement ELSE statement { if (((TS_entry)$2).getTipo() != Tp_BOOL.getTipo()) {
+                                                            yyerror("expressão deve ser lógica "+((TS_entry)$2).getTipo());
+                                                          }
+                                                        } 
+          | WHILE expression DO statement               { if (((TS_entry)$2).getTipo() != Tp_BOOL.getTipo()) {
+                                                            yyerror("expressão deve ser lógica "+((TS_entry)$2).getTipo());
+                                                          }
+                                                        } 
           | compoundStmt
           | READLN '(' ID ')' 
           | WRITELN '(' printList ')'
