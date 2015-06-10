@@ -1,5 +1,6 @@
 %{
   import java.io.*;
+  import java.util.*;
 %}
 
 %token  PROGRAM FUNCTION PROCEDURE
@@ -38,10 +39,14 @@ declarationList : declaration ';' declarationList
           	    | error { System.out.println("Erro na declaração, linha: " + lexer.getLine() ); }
                 ;
 
-declaration : idList ':' type ;
+declaration : { varList = new ArrayList<String>(); } idList ':' type ;  { for (String s : varList) {
+                                                                           TS_entry nodo = new TS_entry(s, (Type)$4, currEscopo, currClass);
+                                                                           //ts.insert(nodo); 
+                                                                          }
+                                                                        } 
 
-idList : ID
-       | ID ',' idList
+idList : ID { varList.add($1); }
+       | ID ',' idList { varList.add($1); }
        ;
 
 type : INTEGER { $$ = Type.Int; }
@@ -76,19 +81,31 @@ statementList : statement ';' statementList
               | error ';' { System.out.println("Erro nos comandos, linha: " + lexer.getLine() ); }
               ;
 
-statement : ID ASSIGN expression
-          | IF expression THEN statement                { if (((TS_entry)$2).getTipo() != Type.Bool) {
-                                                            yyerror("expressão deve ser lógica "+((TS_entry)$2).getTipo());
+statement : ID ASSIGN expression                        { TS_entry nodo = ts.pesquisa($1);
+                                                          if (nodo == null) {
+                                                            yyerror("(sem) var <" + $1 + "> nao declarada");                
+                                                          } else {
+                                                              if (nodo.getTipo() != (Type)$3) {
+                                                                yyerror("atribuindo valor diferente: " + nodo.getTipo() + " e " + (Type)$3);
+                                                              }
                                                           }
                                                         } 
-          | IF expression THEN statement ELSE statement { if (((TS_entry)$2).getTipo() != Type.Bool) {
-                                                            yyerror("expressão deve ser lógica "+((TS_entry)$2).getTipo());
+
+          | IF expression THEN statement                { if ((Type)$2 != Type.Bool) {
+                                                            yyerror("expressão deve ser lógica "+(Type)$2);
+                                                          }
+                                                        }
+
+          | IF expression THEN statement ELSE statement { if ((Type)$2 != Type.Bool) {
+                                                            yyerror("expressão deve ser lógica "+(Type)$2);
+                                                          }
+                                                        }
+
+          | WHILE expression DO statement               { if ((Type)$2 != Type.Bool) {
+                                                            yyerror("expressão deve ser lógica "+(Type)$2);
                                                           }
                                                         } 
-          | WHILE expression DO statement               { if (((TS_entry)$2).getTipo() != Type.Bool) {
-                                                            yyerror("expressão deve ser lógica "+((TS_entry)$2).getTipo());
-                                                          }
-                                                        } 
+
           | compoundStmt
           | READLN '(' ID ')' 
           | WRITELN '(' printList ')'
@@ -127,7 +144,7 @@ expression : expression '+' expression { $$ = validaTipo('+', (Type)$1, (Type)$3
                                          }
                                        }   
            | ID '(' expressionList ')' { $$ = Type.Error; }
-           | NUM                       { $$ = Type.Int; }
+           | NUM                       { $$ = Type.Int;}
            | TRUE                      { $$ = Type.Bool; }
            | FALSE                     { $$ = Type.Bool; }  
            ;
@@ -146,6 +163,7 @@ expressionList : expression
 
   private String currEscopo;
   private ClasseID currClass;
+  private ArrayList<String> varList = new ArrayList<String>();
 
   private int yylex () {
     int yyl_return = -1;
