@@ -5,13 +5,12 @@ public class TS_entry
    private String id;
    private ClasseID classe;  
    private String escopo;
-   private TS_entry tipo;
+   private Type tipo;
    private int nElem;
-   private TS_entry tipoBase;
    private TabSimb locais;
 
 
-   public TS_entry(String id, TS_entry tipo, String escopo, ClasseID classe) {
+   public TS_entry(String id, Type tipo, String escopo, ClasseID classe) {
       this.id = id;
       this.tipo = tipo;
       this.escopo = escopo;
@@ -24,20 +23,12 @@ public class TS_entry
        return id; 
    }
 
-   public TS_entry getTipo() {
+   public Type getTipo() {
        return tipo; 
    }
    
-   public String getTipoStr() {
-       return tipo2str(this); 
-   }
-
    public int getNumElem() {
        return nElem; 
-   }
-
-   public TS_entry getTipoBase() {
-       return tipoBase; 
    }
 
    
@@ -66,13 +57,13 @@ public class TS_entry
 
    }
 
-    public String tipo2str(TS_entry tipo) {
+    public String tipo2str(Type tipo) {
       if (tipo == null)  return "null"; 
-     	else if (tipo==Parser.Tp_INT)    return "integer"; 
-      else if (tipo==Parser.Tp_BOOL)   return "boolean"; 
-      else if (tipo==Parser.Tp_FLOAT)  return "real";
-      else if (tipo==Parser.Tp_ERRO)  return  "_erro_";
-	    else                             return "erro/tp";
+     	else if (tipo==Type.Int)    return "integer"; 
+      else if (tipo==Type.Bool)   return "boolean"; 
+      else if (tipo==Type.Double) return "real";
+      else if (tipo==Type.Error)  return  "_erro_";
+	    else                        return "erro/tp";
    }
 
 

@@ -44,9 +44,9 @@ idList : ID
        | ID ',' idList
        ;
 
-type : INTEGER { $$ = Tp_INT; }
-     | BOOLEAN { $$ = Tp_BOOL; }
-     | REAL    { $$ = Tp_FLOAT; }
+type : INTEGER { $$ = Type.Int; }
+     | BOOLEAN { $$ = Type.Bool; }
+     | REAL    { $$ = Type.Double; }
      ;
 
 procDeclarations : procDec procDeclarations
@@ -77,15 +77,15 @@ statementList : statement ';' statementList
               ;
 
 statement : ID ASSIGN expression
-          | IF expression THEN statement                { if (((TS_entry)$2).getTipo() != Tp_BOOL.getTipo()) {
+          | IF expression THEN statement                { if (((TS_entry)$2).getTipo() != Type.Bool) {
                                                             yyerror("expressão deve ser lógica "+((TS_entry)$2).getTipo());
                                                           }
                                                         } 
-          | IF expression THEN statement ELSE statement { if (((TS_entry)$2).getTipo() != Tp_BOOL.getTipo()) {
+          | IF expression THEN statement ELSE statement { if (((TS_entry)$2).getTipo() != Type.Bool) {
                                                             yyerror("expressão deve ser lógica "+((TS_entry)$2).getTipo());
                                                           }
                                                         } 
-          | WHILE expression DO statement               { if (((TS_entry)$2).getTipo() != Tp_BOOL.getTipo()) {
+          | WHILE expression DO statement               { if (((TS_entry)$2).getTipo() != Type.Bool) {
                                                             yyerror("expressão deve ser lógica "+((TS_entry)$2).getTipo());
                                                           }
                                                         } 
@@ -104,20 +104,20 @@ printList2 : ',' printList
            |
            ;
 
-expression : expression '+' expression { $$ = validaTipo('+', (TS_entry)$1, (TS_entry)$3); }
-           | expression '-' expression { $$ = validaTipo('-', (TS_entry)$1, (TS_entry)$3); }
-           | expression OR expression  { $$ = validaTipo(OR, (TS_entry)$1, (TS_entry)$3); }
-           | expression '*' expression { $$ = validaTipo('*', (TS_entry)$1, (TS_entry)$3); }
-           | expression DIV expression { $$ = validaTipo(DIV, (TS_entry)$1, (TS_entry)$3); }
-           | expression MOD expression { $$ = validaTipo(MOD, (TS_entry)$1, (TS_entry)$3); }
-           | expression AND expression { $$ = validaTipo(AND, (TS_entry)$1, (TS_entry)$3); }
-           | expression LE expression  { $$ = validaTipo(LE, (TS_entry)$1, (TS_entry)$3); }
-           | expression LEQ expression { $$ = validaTipo(LEQ, (TS_entry)$1, (TS_entry)$3); }
-           | expression EQ expression  { $$ = validaTipo(EQ, (TS_entry)$1, (TS_entry)$3); }
-           | expression GEQ expression { $$ = validaTipo(GEQ, (TS_entry)$1, (TS_entry)$3); }
-           | expression GR expression  { $$ = validaTipo(GR, (TS_entry)$1, (TS_entry)$3); }
-           | expression NEQ expression { $$ = validaTipo(NEQ, (TS_entry)$1, (TS_entry)$3); }
-           | NOT expression            { $$ = validaTipo(NOT, (TS_entry)$2, null); }
+expression : expression '+' expression { $$ = validaTipo('+', (Type)$1, (Type)$3); }
+           | expression '-' expression { $$ = validaTipo('-', (Type)$1, (Type)$3); }
+           | expression OR expression  { $$ = validaTipo(OR, (Type)$1, (Type)$3); }
+           | expression '*' expression { $$ = validaTipo('*', (Type)$1, (Type)$3); }
+           | expression DIV expression { $$ = validaTipo(DIV, (Type)$1, (Type)$3); }
+           | expression MOD expression { $$ = validaTipo(MOD, (Type)$1, (Type)$3); }
+           | expression AND expression { $$ = validaTipo(AND, (Type)$1, (Type)$3); }
+           | expression LE expression  { $$ = validaTipo(LE, (Type)$1, (Type)$3); }
+           | expression LEQ expression { $$ = validaTipo(LEQ, (Type)$1, (Type)$3); }
+           | expression EQ expression  { $$ = validaTipo(EQ, (Type)$1, (Type)$3); }
+           | expression GEQ expression { $$ = validaTipo(GEQ, (Type)$1, (Type)$3); }
+           | expression GR expression  { $$ = validaTipo(GR, (Type)$1, (Type)$3); }
+           | expression NEQ expression { $$ = validaTipo(NEQ, (Type)$1, (Type)$3); }
+           | NOT expression            { $$ = validaTipo(NOT, (Type)$2, null); }
            | '(' expression ')'        { $$ = $2; }
            | ID                        { TS_entry nodo = ts.pesquisa($1);
                                          if (nodo == null) {
@@ -126,10 +126,10 @@ expression : expression '+' expression { $$ = validaTipo('+', (TS_entry)$1, (TS_
                                             $$ = nodo.getTipo();
                                          }
                                        }   
-           | ID '(' expressionList ')' { $$ = Tp_ERRO; }
-           | NUM                       { $$ = Tp_INT; }
-           | TRUE                      { $$ = Tp_BOOL; }
-           | FALSE                     { $$ = Tp_BOOL; }  
+           | ID '(' expressionList ')' { $$ = Type.Error; }
+           | NUM                       { $$ = Type.Int; }
+           | TRUE                      { $$ = Type.Bool; }
+           | FALSE                     { $$ = Type.Bool; }  
            ;
 
 
@@ -143,11 +143,6 @@ expressionList : expression
   private Yylex lexer;
 
   private TabSimb ts;
-
-  public static TS_entry Tp_INT =  new TS_entry("integer", null, "", ClasseID.TipoBase);
-  public static TS_entry Tp_BOOL =  new TS_entry("boolean", null, "", ClasseID.TipoBase);
-  public static TS_entry Tp_FLOAT =  new TS_entry("real", null, "", ClasseID.TipoBase);
-  public static TS_entry Tp_ERRO = new TS_entry("_erro_", null, "", ClasseID.TipoBase);
 
   private String currEscopo;
   private ClasseID currClass;
@@ -174,11 +169,6 @@ expressionList : expression
     lexer = new Yylex(r, this);
 
     ts = new TabSimb();
-
-    ts.insert(Tp_ERRO);
-    ts.insert(Tp_INT);
-    ts.insert(Tp_FLOAT);
-    ts.insert(Tp_BOOL);
 
   }
 
@@ -216,45 +206,45 @@ expressionList : expression
     }
   }
 
-  TS_entry validaTipo (int operador, TS_entry A, TS_entry B) {
+  Type validaTipo (int operador, Type A, Type B) {
 
     //operacoes aritmeticas
 
     if (operador == '+' || operador == '-' || operador == '*') {
-      if ( A == Tp_INT && B == Tp_INT) {
-        return Tp_INT;
+      if ( A == Type.Int && B == Type.Int) {
+        return Type.Int;
       }
-      else if ( (A == Tp_FLOAT && (B == Tp_INT || B == Tp_FLOAT)) || (B == Tp_FLOAT && (A == Tp_INT || A == Tp_FLOAT)) ) {
-        return Tp_FLOAT;
+      else if ( (A == Type.Double && (B == Type.Int || B == Type.Double)) || (B == Type.Double && (A == Type.Int || A == Type.Double)) ) {
+        return Type.Double;
       }
       else {
-        yyerror("(sem) tipos incomp. para soma: " + A.getTipoStr() + " + " + B.getTipoStr());
+        yyerror("(sem) tipos incomp. para soma: " + A + " + " + B);
       }          
     }
 
     //operacoes logicas
 
     if (operador == OR || operador == AND || operador == NOT) {
-      if (A == Tp_BOOL && B == Tp_BOOL) {
-        return Tp_BOOL;
+      if (A == Type.Bool && B == Type.Bool) {
+        return Type.Bool;
       } else {
-        yyerror("(sem) tipos incomp. para op lógica: "+ A.getTipoStr() + " && "+B.getTipoStr());
+        yyerror("(sem) tipos incomp. para op lógica: "+ A + " && "+B);
       }
     }
 
     //operacoes relacionais
 
     if (operador == LE || operador == LEQ || operador == EQ || operador == GEQ || operador == GR || operador == NEQ) {
-      if (A == Tp_INT && B == Tp_INT) {
-        return Tp_BOOL;
+      if (A == Type.Int && B == Type.Int) {
+        return Type.Bool;
       } else {
-        yyerror("(sem) tipos incomp. para op relacional: "+ A.getTipoStr() + " > "+B.getTipoStr());
+        yyerror("(sem) tipos incomp. para op relacional: "+ A + " > "+B);
       }
     }
 
     //erro
 
-    return Tp_ERRO;
+    return Type.Error;
 
   }
 

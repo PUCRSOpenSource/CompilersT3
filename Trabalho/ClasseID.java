@@ -1,3 +1,3 @@
   public enum ClasseID {
-    TipoBase, VarGlobal, NomeFuncao, VarLocal; 
+    VarGlobal, NomeFuncao, VarLocal; 
   }
