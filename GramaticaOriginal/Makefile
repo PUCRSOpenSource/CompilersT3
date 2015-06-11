@@ -2,7 +2,12 @@
 # byacc/j from http://troi.lincom-asg.com/~rjamison/byacc/
 
 JFLEX  = java -jar JFlex.jar
+OS := $(shell uname)
+ifeq ($(OS), Darwin)
+BYACCJ = ./yacc.macosx -tv -J
+else
 BYACCJ = ./yacc.linux -tv -J
+endif
 JAVAC  = javac
 
 # targets:

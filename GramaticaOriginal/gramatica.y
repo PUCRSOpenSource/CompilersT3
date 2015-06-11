@@ -16,6 +16,8 @@
 %left '*' DIV MOD AND
 %left NOT
 
+%type <sval> ID
+
 
 %%
 
@@ -35,7 +37,7 @@ declarationList : declaration ';' declarationList
 
 declaration : idList ':' type ;
 
-idList : ID
+idList : ID {System.out.println($1);}
        | ID ',' idList
        ;
 

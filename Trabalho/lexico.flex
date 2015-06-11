@@ -23,9 +23,10 @@
 %}
 
 WHITE_SPACE = [\n\r\ \t\b\012]
-ID          = {LETTER}+({LETTER}|{NUM}|"_")*
+ID          = {LETTER}+({LETTER}|{NUM}|"_")* 
 LETTER      = [a-zA-Z]
 NUM         = [0-9]+
+LITERAL     = "\""[^\"]*"\""
 
 %%
 
@@ -76,11 +77,18 @@ NUM         = [0-9]+
 "-"|
 "*"    {return yytext().charAt(0);} 
 
-"\""[^\"]*"\"" {return Parser.LITERAL;}
+{LITERAL} { yyparser.yylval = new ParserVal(yytext());
+            return Parser.LITERAL; 
+          }
 
 
-{ID}   {return Parser.ID;}
-{NUM}   {return Parser.NUM;}
+{ID}      { yyparser.yylval = new ParserVal(yytext());
+            return Parser.ID; 
+          }
+
+{NUM}     { yyparser.yylval = new ParserVal(Integer.parseInt(yytext())); 
+            return Parser.NUM; 
+          }
 
 "{"[^.]*"}"   { }	
 {WHITE_SPACE}+    { }

@@ -1,9 +1,4 @@
-int i;
-int j;
-int k;
 
-float x;
-float y;
 
 bool b;
 bool ok;

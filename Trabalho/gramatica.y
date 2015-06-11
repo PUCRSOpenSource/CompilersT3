@@ -40,12 +40,12 @@ declarationList : declaration ';' declarationList
                 ;
 
 declaration : { varList = new ArrayList<String>(); } idList ':' type ;  { for (String s : varList) {
-                                                                           TS_entry nodo = new TS_entry(s, (Type)$4, currEscopo, currClass);
-                                                                           //ts.insert(nodo); 
+                                                                            TS_entry nodo = new TS_entry("tchau", (Type)$4, currEscopo, currClass);
+                                                                            ts.insert(nodo); 
                                                                           }
                                                                         } 
 
-idList : ID { varList.add($1); }
+idList : ID { varList.add($1);  }
        | ID ',' idList { varList.add($1); }
        ;
 
@@ -144,7 +144,7 @@ expression : expression '+' expression { $$ = validaTipo('+', (Type)$1, (Type)$3
                                          }
                                        }   
            | ID '(' expressionList ')' { $$ = Type.Error; }
-           | NUM                       { $$ = Type.Int;}
+           | NUM                       { $$ = Type.Int; }
            | TRUE                      { $$ = Type.Bool; }
            | FALSE                     { $$ = Type.Bool; }  
            ;
@@ -163,7 +163,7 @@ expressionList : expression
 
   private String currEscopo;
   private ClasseID currClass;
-  private ArrayList<String> varList = new ArrayList<String>();
+  private ArrayList<String> varList;
 
   private int yylex () {
     int yyl_return = -1;
@@ -265,14 +265,3 @@ expressionList : expression
     return Type.Error;
 
   }
-
-
-
-
-
-
-
-
-
-
-
