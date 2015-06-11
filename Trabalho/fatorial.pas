@@ -7,8 +7,6 @@ program fatorial;
   var
     num : integer;
     cont, result : integer;
-    dae : boolean;
-
 
   begin
     writeln( "Informe um numero: ");

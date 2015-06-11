@@ -40,12 +40,17 @@ declarationList : declaration ';' declarationList
                 ;
 
 declaration : { varList = new ArrayList<String>(); } idList ':' type ;  { for (String s : varList) {
-                                                                            TS_entry nodo = new TS_entry("tchau", (Type)$4, currEscopo, currClass);
-                                                                            ts.insert(nodo); 
+                                                                            TS_entry nodo = ts.pesquisa(s);
+                                                                            if (nodo == null) {
+                                                                                nodo = new TS_entry(s, (Type)$4, currEscopo, currClass);
+                                                                                ts.insert(nodo);                
+                                                                            } else {
+                                                                                yyerror("variavel ja declarada: " + s);
+                                                                              }
                                                                           }
                                                                         } 
 
-idList : ID { varList.add($1);  }
+idList : ID { varList.add($1); }
        | ID ',' idList { varList.add($1); }
        ;
 
@@ -62,9 +67,23 @@ procDec : procHeader declarationOpc compoundStmt ';'
         | funcHeader declarationOpc compoundStmt ';'
         ;
 
-procHeader : PROCEDURE ID argumentList ';' ;
+procHeader : PROCEDURE ID argumentList ';' ;  { TS_entry nodo = ts.pesquisa($2);
+                                                if (nodo == null) {
+                                                  nodo = new TS_entry($2, null, currEscopo, currClass);
+                                                  ts.insert(nodo);
+                                                } else {
+                                                  yyerror("procedure ja declarada: " + $2);
+                                                }
+                                              }       
 
-funcHeader : FUNCTION ID argumentList ':' type ';' ;
+funcHeader : FUNCTION ID argumentList ':' type ';' ;  { TS_entry nodo = ts.pesquisa($2);
+                                                        if (nodo == null) {
+                                                          nodo = new TS_entry($2, (Type)$5, currEscopo, currClass);
+                                                          ts.insert(nodo);
+                                                        } else {
+                                                          yyerror("func ja declarada: " + $2);
+                                                        }
+                                                      }       
 
 argumentList : '(' arguments ')'
              | 
