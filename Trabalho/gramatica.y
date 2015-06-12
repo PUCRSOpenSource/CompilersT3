@@ -25,7 +25,7 @@
 
 %%
 
-program : { currEscopo = ""; } PROGRAM ID ';'{ currClass = ClasseID.VarGlobal; } declarationOpc compoundStmt '.'
+program : { currEscopo = ""; } PROGRAM ID ';'{ currClass = ClasseID.VarGlobal; } declarationOpc { currEscopo = "program"; } compoundStmt '.'
         ;
 
 declarationOpc : varDeclarations procDeclarations ;
@@ -42,11 +42,14 @@ declarationList : declaration ';' declarationList
 declaration : { varList = new ArrayList<String>(); } idList ':' type ;  { for (String s : varList) {
                                                                             TS_entry nodo = ts.pesquisa(s);
                                                                             if (nodo == null) {
-                                                                                nodo = new TS_entry(s, (Type)$4, currEscopo, currClass);
-                                                                                ts.insert(nodo);                
+                                                                              if(currClass == ClasseID.Parametro) {
+                                                                                  paramList.add((Type)$4);
+                                                                              }
+                                                                              nodo = new TS_entry(s, (Type)$4, currEscopo, currClass);
+                                                                              ts.insert(nodo);                
                                                                             } else {
                                                                                 yyerror("variavel ja declarada: " + s);
-                                                                              }
+                                                                            }
                                                                           }
                                                                         } 
 
@@ -67,25 +70,25 @@ procDec : procHeader declarationOpc compoundStmt ';'
         | funcHeader declarationOpc compoundStmt ';'
         ;
 
-procHeader : PROCEDURE ID argumentList ';' ;  { TS_entry nodo = ts.pesquisa($2);
-                                                if (nodo == null) {
-                                                  nodo = new TS_entry($2, null, currEscopo, currClass);
-                                                  ts.insert(nodo);
-                                                } else {
-                                                  yyerror("procedure ja declarada: " + $2);
-                                                }
-                                              }       
+procHeader : PROCEDURE ID {currEscopo = $2;} argumentList ';' ;         { TS_entry nodo = ts.pesquisa($2);
+                                                                          if (nodo == null) {
+                                                                            nodo = new TS_entry($2, null, "", ClasseID.NomeProcedure, paramList);
+                                                                            ts.insert(nodo);
+                                                                          } else {
+                                                                            yyerror("procedure ja declarada: " + $2);
+                                                                          }
+                                                                        }       
 
-funcHeader : FUNCTION ID argumentList ':' type ';' ;  { TS_entry nodo = ts.pesquisa($2);
-                                                        if (nodo == null) {
-                                                          nodo = new TS_entry($2, (Type)$5, currEscopo, currClass);
-                                                          ts.insert(nodo);
-                                                        } else {
-                                                          yyerror("func ja declarada: " + $2);
-                                                        }
-                                                      }       
+funcHeader : FUNCTION ID {currEscopo = $2;} argumentList ':' type ';' ; {   TS_entry nodo = ts.pesquisa($2);
+                                                                            if (nodo == null) {
+                                                                            nodo = new TS_entry($2, (Type)$6, "", ClasseID.NomeFuncao, paramList);
+                                                                            ts.insert(nodo);
+                                                                          } else {
+                                                                            yyerror("func ja declarada: " + $2);
+                                                                          }
+                                                                        }       
 
-argumentList : '(' arguments ')'
+argumentList : { currClass = ClasseID.Parametro; paramList = new ArrayList<Type>();} '(' arguments ')' { currClass = ClasseID.VarLocal; }
              | 
              ;
 
@@ -162,15 +165,34 @@ expression : expression '+' expression { $$ = validaTipo('+', (Type)$1, (Type)$3
                                             $$ = nodo.getTipo();
                                          }
                                        }   
-           | ID '(' expressionList ')' { $$ = Type.Error; }
+           | ID '(' { paramList = new ArrayList<Type>(); } expressionList ')' 
+                                        { TS_entry nodo = ts.pesquisa($1);
+                                          if (nodo == null) {
+                                            yyerror("(sem) func <" + $1 + "> nao declarada");                
+                                          } else {
+                                            $$ = nodo.getTipo();
+                                            if (nodo.getParametros().size() != paramList.size()) {
+                                              yyerror("numero de parametros inconsistente");                
+                                            } else {
+                                              for (int i = 0; i < nodo.getParametros().size(); i++) {
+                                                if(nodo.getParametros().get(i) != paramList.get(i)) {
+                                                  yyerror("parametros inconsistentes esperado: " 
+                                                  + nodo.getParametros().get(i) + "  recebido: " + 
+                                                  paramList.get(i));                
+                                                }
+                                              }
+
+                                            }
+                                         }
+                                       }   
            | NUM                       { $$ = Type.Int; }
            | TRUE                      { $$ = Type.Bool; }
            | FALSE                     { $$ = Type.Bool; }  
            ;
 
 
-expressionList : expression
-               | expression ',' expressionList
+expressionList : expression { paramList.add((Type)$1); }
+               | expression ',' expressionList { paramList.add((Type)$1); }
                |
                ;
 
@@ -183,6 +205,7 @@ expressionList : expression
   private String currEscopo;
   private ClasseID currClass;
   private ArrayList<String> varList;
+  private ArrayList<Type> paramList = new ArrayList<Type>();
 
   private int yylex () {
     int yyl_return = -1;

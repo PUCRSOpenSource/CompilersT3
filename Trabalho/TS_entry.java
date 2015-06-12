@@ -7,6 +7,7 @@ public class TS_entry
    private String escopo;
    private Type tipo;
    private int nElem;
+   private ArrayList<Type> parametros;
    private TabSimb locais;
 
 
@@ -15,6 +16,16 @@ public class TS_entry
       this.tipo = tipo;
       this.escopo = escopo;
       this.classe = classe;
+      locais = new TabSimb();
+   }
+
+   //construtor para funcoes e procedures;
+   public TS_entry(String id, Type tipo, String escopo, ClasseID classe, ArrayList<Type> parametros) {
+      this.id = id;
+      this.tipo = tipo;
+      this.escopo = escopo;
+      this.classe = classe;
+      this.parametros = parametros;
       locais = new TabSimb();
    }
 
@@ -31,19 +42,25 @@ public class TS_entry
        return nElem; 
    }
 
+   public ArrayList<Type> getParametros() {
+      return parametros;
+   }
+
    
    public String toString() {
        StringBuilder aux = new StringBuilder("");
         
 	     aux.append("Id: ");
 	     aux.append(String.format("%-10s", id));
-
 	     aux.append("\tClasse: ");
 	     aux.append(classe);
 	     aux.append("\tEscopo: ");
 	     aux.append(String.format("%-4s", escopo));
 	     aux.append("\tTipo: "); 
-	     aux.append(tipo2str(this.tipo)); 
+	     aux.append(tipo2str(this.tipo));
+       aux.append("Parametros: ");
+       aux.append(String.format("%-10s", parametros));
+
        
          
 
