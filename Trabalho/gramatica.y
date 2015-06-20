@@ -40,7 +40,7 @@ declarationList : declaration ';' declarationList
                 ;
 
 declaration : { varList = new ArrayList<String>(); } idList ':' type ;  { for (String s : varList) {
-                                                                            TS_entry nodo = ts.pesquisa(s);
+                                                                            TS_entry nodo = ts.pesquisa(s, currEscopo);
                                                                             if (nodo == null) {
                                                                               if(currClass == ClasseID.Parametro) {
                                                                                   paramList.add((Type)$4);
@@ -70,7 +70,7 @@ procDec : procHeader declarationOpc compoundStmt ';'
         | funcHeader declarationOpc compoundStmt ';'
         ;
 
-procHeader : PROCEDURE ID {currEscopo = $2;} argumentList ';' ;         { TS_entry nodo = ts.pesquisa($2);
+procHeader : PROCEDURE ID {currEscopo = $2;} argumentList ';' ;         { TS_entry nodo = ts.pesquisa($2, currEscopo);
                                                                           if (nodo == null) {
                                                                             nodo = new TS_entry($2, null, "", ClasseID.NomeProcedure, paramList);
                                                                             ts.insert(nodo);
@@ -79,7 +79,7 @@ procHeader : PROCEDURE ID {currEscopo = $2;} argumentList ';' ;         { TS_ent
                                                                           }
                                                                         }       
 
-funcHeader : FUNCTION ID {currEscopo = $2;} argumentList ':' type ';' ; {   TS_entry nodo = ts.pesquisa($2);
+funcHeader : FUNCTION ID {currEscopo = $2;} argumentList ':' type ';' ; {   TS_entry nodo = ts.pesquisa($2, currEscopo);
                                                                             if (nodo == null) {
                                                                             nodo = new TS_entry($2, (Type)$6, "", ClasseID.NomeFuncao, paramList);
                                                                             ts.insert(nodo);
@@ -103,7 +103,7 @@ statementList : statement ';' statementList
               | error ';' { System.out.println("Erro nos comandos, linha: " + lexer.getLine() ); }
               ;
 
-statement : ID ASSIGN expression                        { TS_entry nodo = ts.pesquisa($1);
+statement : ID ASSIGN expression                        { TS_entry nodo = ts.pesquisa($1, currEscopo);
                                                           if (nodo == null) {
                                                             yyerror("(sem) var <" + $1 + "> nao declarada");                
                                                           } else {
@@ -158,15 +158,16 @@ expression : expression '+' expression { $$ = validaTipo('+', (Type)$1, (Type)$3
            | expression NEQ expression { $$ = validaTipo(NEQ, (Type)$1, (Type)$3); }
            | NOT expression            { $$ = validaTipo(NOT, (Type)$2, null); }
            | '(' expression ')'        { $$ = $2; }
-           | ID                        { TS_entry nodo = ts.pesquisa($1);
+           | ID                        { TS_entry nodo = ts.pesquisa($1, currEscopo);
                                          if (nodo == null) {
                                             yyerror("(sem) var <" + $1 + "> nao declarada");                
                                          } else {
                                             $$ = nodo.getTipo();
                                          }
                                        }   
+                                       
            | ID '(' { paramList = new ArrayList<Type>(); } expressionList ')' 
-                                        { TS_entry nodo = ts.pesquisa($1);
+                                        { TS_entry nodo = ts.pesquisa($1, currEscopo);
                                           if (nodo == null) {
                                             yyerror("(sem) func <" + $1 + "> nao declarada");                
                                           } else {
@@ -185,6 +186,7 @@ expression : expression '+' expression { $$ = validaTipo('+', (Type)$1, (Type)$3
                                             }
                                          }
                                        }   
+
            | NUM                       { $$ = Type.Int; }
            | TRUE                      { $$ = Type.Bool; }
            | FALSE                     { $$ = Type.Bool; }  

@@ -23,11 +23,14 @@ public class TabSimb
       }
     }
       
-    public TS_entry pesquisa(String umId) {
+    public TS_entry pesquisa(String umId, String escopo) {
       for (TS_entry nodo : lista) {
-          if (nodo.getId().equals(umId)) {
-	           return nodo;
-          }
+          if (nodo.getEscopo().equals(escopo) || nodo.getEscopo().equals("")) {
+            if (nodo.getId().equals(umId)) {
+              return nodo;
+            }
+    }
+          
       }
       return null;
     }

@@ -34,6 +34,10 @@ public class TS_entry
        return id; 
    }
 
+   public String getEscopo() {
+       return escopo; 
+   }
+
    public Type getTipo() {
        return tipo; 
    }
