@@ -3,28 +3,32 @@
 { ----------------------------------------- }
 
 program fatorial;
-
   var
     num : integer;
-    cont, result : integer;
 
+  procedure escreveFat( N : integer);
+    var cont, result : integer;
+    	temp: boolean;
 
-  begin
-    writeln( "Informe um numero: ");
-    readln( num);
- 
-    if num > 12 then 
+    begin 
+    if N > 12 then 
        writeln( "Numero muito grande!!!")
     else begin
 
            cont := 1;
            result := 1;
-
-           while ( cont < num ) do begin
+           
+           while ( cont < N ) do begin
               result := result * cont;
               cont := cont + 1;
            end;
 
            writeln( "Valor do fatorial: ", result);
        end
+     end;
+
+  begin
+    writeln( "Informe um numero: ");
+    readln( num);
+    escreveFat(num);
   end.

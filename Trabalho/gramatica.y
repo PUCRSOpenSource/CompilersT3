@@ -9,7 +9,7 @@
 %token ASSIGN DIV MOD AND OR NOT
 %token TRUE FALSE
 %token LEQ LE GRE GEQ EQ NEQ
-%token LITERAL ID NUM 
+%token LITERAL ID NUM
 
 %right EQ
 %nonassoc LEQ LE GR GEQ NEQ 
@@ -129,7 +129,15 @@ statement : ID ASSIGN expression                        { TS_entry nodo = ts.pes
                                                         } 
 
           | compoundStmt
-          | READLN '(' ID ')' 
+          | READLN '(' ID ')'                           { TS_entry nodo = ts.pesquisa($3, currEscopo);
+                                                          if (nodo == null) {
+                                                            yyerror("(sem) var <" + $3 + "> nao declarada");                
+                                                          } else {
+                                                              if (nodo.getTipo() != Type.Int) {
+                                                                yyerror("tipo tem que ser inteiro");
+                                                              }
+                                                          }
+                                                        } 
           | WRITELN '(' printList ')'
           | ID '(' expressionList ')'
           |
@@ -286,11 +294,19 @@ expressionList : expression { paramList.add((Type)$1); }
 
     //operacoes logicas
 
-    if (operador == OR || operador == AND || operador == NOT) {
+    if (operador == OR || operador == AND) {
       if (A == Type.Bool && B == Type.Bool) {
         return Type.Bool;
       } else {
         yyerror("(sem) tipos incomp. para op lógica: "+ A + " && "+B);
+      }
+    }
+
+    if (operador == NOT) {
+      if (A == Type.Bool) {
+        return Type.Bool;
+      } else {
+        yyerror("(sem) tipos incomp. para op lógica: "+ A);
       }
     }
 
