@@ -16,7 +16,7 @@
 
 %type <sval> IDENT
 %type <ival> NUM
-%type <obj> type
+
 %type <obj> exp
 
 %%
